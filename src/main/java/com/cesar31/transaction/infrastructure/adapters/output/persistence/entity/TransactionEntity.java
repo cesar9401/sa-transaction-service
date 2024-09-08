@@ -24,6 +24,15 @@ public class TransactionEntity {
     @Column(name = "sale_id")
     private UUID saleId;
 
+    @Column(name = "quantity")
+    private Integer quantity;
+
+    @Column(name = "unit_price")
+    private BigDecimal unitPrice;
+
+    @Column(name = "unit_discount")
+    private BigDecimal unitDiscount;
+
     @Column(name = "transaction_total")
     private BigDecimal transactionTotal;
 
