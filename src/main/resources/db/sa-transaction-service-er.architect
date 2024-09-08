@@ -40,7 +40,7 @@
     <folder id="FOLTAB12" populated="true" name="Imported Keys" physicalName="Imported Keys" type="2">
     </folder>
     <folder id="FOLTAB14" populated="true" name="Indices" physicalName="Indices" type="4">
-    <index id="IDX9" populated="true" UUID="1261fb00-51c0-4d98-ac2a-09ef163ce86b" clustered="false" name="sa_sale_pk" physicalName="sale_id" primaryKeyIndex="true" unique="false" >
+    <index id="IDX9" populated="true" UUID="1261fb00-51c0-4d98-ac2a-09ef163ce86b" clustered="false" name="sa_sale_pk" physicalName="sa_sale_pk" primaryKeyIndex="true" unique="false" >
      <index-column id="IDC10" populated="true" UUID="854c2a13-2905-4ee6-926a-188d22618350" ascendingOrDescending="UNSPECIFIED" column-ref="COL2" name="sale_id" physicalName="sale_id" />
     </index>
    </folder>
@@ -83,7 +83,7 @@
     <folder id="FOLTAB152" populated="true" name="Imported Keys" physicalName="Imported Keys" type="2">
     </folder>
     <folder id="FOLTAB154" populated="true" name="Indices" physicalName="Indices" type="4">
-    <index id="IDX20" populated="true" UUID="782ddf32-22fa-41a2-9db6-d97199961896" clustered="false" name="sa_payment_pk" physicalName="sale_payment_pk" primaryKeyIndex="true" unique="false" >
+    <index id="IDX20" populated="true" UUID="782ddf32-22fa-41a2-9db6-d97199961896" clustered="false" name="sa_payment_pk" physicalName="sa_payment_pk" primaryKeyIndex="true" unique="false" >
      <index-column id="IDC21" populated="true" UUID="4cfc0f5b-7ec8-4d57-97a0-3afba7445889" ascendingOrDescending="UNSPECIFIED" column-ref="COL16" name="payment_id" physicalName="payment_id" />
     </index>
    </folder>
@@ -115,7 +115,7 @@
     <folder id="FOLTAB222" populated="true" name="Imported Keys" physicalName="Imported Keys" type="2">
     </folder>
     <folder id="FOLTAB224" populated="true" name="Indices" physicalName="Indices" type="4">
-    <index id="IDX29" populated="true" UUID="d7375cf4-62d0-4868-8964-78275b30647a" clustered="false" name="sa_transaction_pk" physicalName="transaction_pk" primaryKeyIndex="true" unique="false" >
+    <index id="IDX29" populated="true" UUID="d7375cf4-62d0-4868-8964-78275b30647a" clustered="false" name="sa_transaction_pk" physicalName="sa_transaction_pk" primaryKeyIndex="true" unique="false" >
      <index-column id="IDC30" populated="true" UUID="1984699d-eaed-43db-be2e-13aad67cade6" ascendingOrDescending="UNSPECIFIED" column-ref="COL23" name="transaction_id" physicalName="transaction_id" />
     </index>
    </folder>
@@ -138,7 +138,7 @@
     <folder id="FOLTAB312" populated="true" name="Imported Keys" physicalName="Imported Keys" type="2">
     </folder>
     <folder id="FOLTAB314" populated="true" name="Indices" physicalName="Indices" type="4">
-    <index id="IDX35" populated="true" UUID="9806e1c8-d9a6-4371-95fe-88039e31c42a" clustered="false" name="sa_dish_order_pk" physicalName="dish_order_pk" primaryKeyIndex="true" unique="false" >
+    <index id="IDX35" populated="true" UUID="9806e1c8-d9a6-4371-95fe-88039e31c42a" clustered="false" name="sa_dish_order_pk" physicalName="sa_dish_order_pk" primaryKeyIndex="true" unique="false" >
      <index-column id="IDC36" populated="true" UUID="a8bb6209-e5e0-466a-a47e-5d788d133d2f" ascendingOrDescending="UNSPECIFIED" column-ref="COL32" name="transaction_id" physicalName="transaction_id" />
     </index>
    </folder>
@@ -155,7 +155,7 @@
     <folder id="FOLTAB372" populated="true" name="Imported Keys" physicalName="Imported Keys" type="2">
     </folder>
     <folder id="FOLTAB374" populated="true" name="Indices" physicalName="Indices" type="4">
-    <index id="IDX39" populated="true" UUID="39d46d6c-704a-4bcf-8a17-9ed243a76d2f" clustered="false" name="sa_dish_pk" physicalName="dish_pk" primaryKeyIndex="true" unique="false" >
+    <index id="IDX39" populated="true" UUID="39d46d6c-704a-4bcf-8a17-9ed243a76d2f" clustered="false" name="sa_dish_pk" physicalName="sa_dish_pk" primaryKeyIndex="true" unique="false" >
      <index-column id="IDC40" populated="true" UUID="661c96ed-0478-4ca7-b07c-23c70db60fe9" ascendingOrDescending="UNSPECIFIED" column-ref="COL38" name="dish_id" physicalName="dish_id" />
     </index>
    </folder>
@@ -184,7 +184,7 @@
     <folder id="FOLTAB412" populated="true" name="Imported Keys" physicalName="Imported Keys" type="2">
     </folder>
     <folder id="FOLTAB414" populated="true" name="Indices" physicalName="Indices" type="4">
-    <index id="IDX47" populated="true" UUID="e231a25f-f48c-4a42-b87e-75b9a8680ab0" clustered="false" name="sa_reservation_pk" physicalName="reservation_pk" primaryKeyIndex="true" unique="false" >
+    <index id="IDX47" populated="true" UUID="e231a25f-f48c-4a42-b87e-75b9a8680ab0" clustered="false" name="sa_reservation_pk" physicalName="sa_reservation_pk" primaryKeyIndex="true" unique="false" >
      <index-column id="IDC48" populated="true" UUID="ff6002d7-8108-4e54-8edb-ebab768b6f05" ascendingOrDescending="UNSPECIFIED" column-ref="COL42" name="transaction_id" physicalName="transaction_id" />
     </index>
    </folder>
@@ -201,7 +201,7 @@
     <folder id="FOLTAB492" populated="true" name="Imported Keys" physicalName="Imported Keys" type="2">
     </folder>
     <folder id="FOLTAB494" populated="true" name="Indices" physicalName="Indices" type="4">
-    <index id="IDX51" populated="true" UUID="4b214d26-aa47-4709-bfb0-2404c10c008e" clustered="false" name="sa_room_pk" physicalName="room_pk" primaryKeyIndex="true" unique="false" >
+    <index id="IDX51" populated="true" UUID="4b214d26-aa47-4709-bfb0-2404c10c008e" clustered="false" name="sa_room_pk" physicalName="sa_room_pk" primaryKeyIndex="true" unique="false" >
      <index-column id="IDC52" populated="true" UUID="f2134cc6-ab10-4176-b443-2f52e37f3bc0" ascendingOrDescending="UNSPECIFIED" column-ref="COL50" name="room_id" physicalName="room_id" />
     </index>
    </folder>
@@ -212,7 +212,7 @@
     <column id="COL54" populated="true" UUID="165d9fee-e145-48a7-bd54-0e591821c320" autoIncrement="false" autoIncrementSequenceName="sa_category_category_id_seq" defaultValue="" name="category_id" nullable="0" physicalName="category_id" precision="0" primaryKeySeq="0" referenceCount="1" scale="0" sourceDataTypeName="UserDefinedSQLType" type="-5" userDefinedTypeUUID="433cc8af-284d-4abb-8ef7-08ebcb34dbf1" >
      <remarks></remarks>
     </column>
-    <column id="COL55" populated="true" UUID="9282c385-f6dd-4300-b813-c48ad57081ac" autoIncrement="false" autoIncrementSequenceName="sa_category_category_id_seq" defaultValue="" name="parent_category_id" nullable="0" physicalName="parent_category_id" precision="0" referenceCount="1" scale="0" sourceDataTypeName="UserDefinedSQLType" type="-5" userDefinedTypeUUID="433cc8af-284d-4abb-8ef7-08ebcb34dbf1" >
+    <column id="COL55" populated="true" UUID="9282c385-f6dd-4300-b813-c48ad57081ac" autoIncrement="false" autoIncrementSequenceName="sa_category_category_id_seq_1" defaultValue="" name="parent_category_id" nullable="1" physicalName="parent_category_id" precision="0" referenceCount="1" scale="0" sourceDataTypeName="UserDefinedSQLType" type="-5" userDefinedTypeUUID="433cc8af-284d-4abb-8ef7-08ebcb34dbf1" >
      <remarks></remarks>
     </column>
     <column id="COL56" populated="true" UUID="168f159f-7751-49a8-a64d-805129418f77" autoIncrement="false" autoIncrementSequenceName="sa_category_cat_description_seq" defaultValue="" name="cat_description" nullable="0" physicalName="cat_description" precision="0" referenceCount="1" scale="0" sourceDataTypeName="UserDefinedSQLType" type="12" userDefinedTypeUUID="831ac2d4-0e65-47ec-a0b7-62b7f6b8760a" >
@@ -256,7 +256,7 @@
    </relationship>
   </relationships>
  </target-database>
- <ddl-generator type="ca.sqlpower.architect.ddl.GenericDDLGenerator" allow-connection="true"> </ddl-generator>
+ <ddl-generator type="ca.sqlpower.architect.ddl.PostgresDDLGenerator" allow-connection="false" target-schema="public"> </ddl-generator>
  <liquibase-settings useSeparateChangeSets="false" generateId="false" idStart="1"/>
  <create-kettle-job-settings filePath="" jobName="" schemaName="" kettleJoinType="0" savingToFile="true" />
  <play-pen zoom="1.0" viewportX="0" viewportY="0" relationship-style="rectilinear" names-displayLogicalNames="true" showPrimaryTag="true" showForeignTag="true" showAlternateTag="true" columnVisibility="ALL" relationshipLabelVisibility="true">
