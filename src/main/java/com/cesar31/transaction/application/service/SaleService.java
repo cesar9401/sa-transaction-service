@@ -68,6 +68,8 @@ public class SaleService implements SaleUseCase {
         if (optSale.isEmpty()) throw new EntityNotFoundException("sale_not_found");
 
         var sale = optSale.get();
+        if (!sale.getCatSaleStatus().is(CategoryEnum.SS_PENDING_PAYMENT)) throw new ApplicationException("sale_is_still_not_open");
+
         var clientId = sale.getClientId();
         var transactions = saleReqDto.getTransactions();
         var payments = saleReqDto.getPayments();
@@ -91,7 +93,26 @@ public class SaleService implements SaleUseCase {
         var salePayments = new ArrayList<Payment>();
         var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, now);
 
-        return null;
+        var newSaleTotal = sale.getNetTotalForTransaction().add(saleTotal);
+        var newNetPayment = sale.getNetTotalPaid().add(netPayment);
+
+        var catSaleStatus = getCatSaleStatus(newNetPayment, newSaleTotal);
+
+        // update data in sales
+        sale.setTotalTransactionSum(newSaleTotal);
+        sale.setNetTotalForTransaction(newSaleTotal);
+        sale.setNetTotalPaid(newNetPayment);
+        sale.setCatSaleStatus(catSaleStatus);
+
+        var updDishReq = new UpdateDishStockReqDto();
+        updDishReq.setClientId(clientId);
+        updDishReq.setOrders(dishesToUpdateStock);
+
+        // update stock here
+        var updatedStockIds = dishOutputPort.updDishStock(updDishReq);
+
+        // save here
+        return saleOutputPort.save(sale, dishOrders, salePayments);
     }
 
     @Override
@@ -132,11 +153,7 @@ public class SaleService implements SaleUseCase {
         var salePayments = new ArrayList<Payment>();
         var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, now);
 
-        int compareTo = netPayment.compareTo(saleTotal);
-        Category catSaleStatus;
-        if (compareTo > 0) throw new ApplicationException("invalid_net_payment");
-        else if (compareTo < 0) catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_PENDING_PAYMENT.categoryId);
-        else catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_COMPLETED.categoryId);
+        var catSaleStatus = getCatSaleStatus(netPayment, saleTotal);
 
         var sale = new Sale();
         sale.setSaleId(saleId);
@@ -235,5 +252,12 @@ public class SaleService implements SaleUseCase {
         }
 
         return paymentTotal;
+    }
+
+    private Category getCatSaleStatus(BigDecimal netPayment, BigDecimal netSaleTotal) throws ApplicationException {
+        int compareTo = netPayment.compareTo(netSaleTotal);
+        if (compareTo > 0) throw new ApplicationException("invalid_net_payment");
+        else if (compareTo < 0) return categoryUseCase.findBy(CategoryEnum.SS_PENDING_PAYMENT.categoryId);
+        return categoryUseCase.findBy(CategoryEnum.SS_COMPLETED.categoryId);
     }
 }
