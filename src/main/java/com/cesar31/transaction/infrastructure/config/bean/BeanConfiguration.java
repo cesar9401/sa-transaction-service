@@ -1,6 +1,7 @@
 package com.cesar31.transaction.infrastructure.config.bean;
 
 import com.cesar31.transaction.application.ports.input.CategoryUseCase;
+import com.cesar31.transaction.application.ports.input.ExportUseCase;
 import com.cesar31.transaction.application.ports.input.SaleUseCase;
 import com.cesar31.transaction.application.ports.output.CategoryOutputPort;
 import com.cesar31.transaction.application.ports.output.DishOutputPort;
@@ -8,6 +9,7 @@ import com.cesar31.transaction.application.ports.output.CurrentUserOutputPort;
 import com.cesar31.transaction.application.ports.output.ExistsClientOutputPort;
 import com.cesar31.transaction.application.ports.output.SaleOutputPort;
 import com.cesar31.transaction.application.service.CategoryService;
+import com.cesar31.transaction.application.service.ExportService;
 import com.cesar31.transaction.application.service.SaleService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -34,5 +36,10 @@ public class BeanConfiguration {
                 saleOutputPort, categoryUseCase, currentUserOutputPort,
                 existsClientOutputPort, dishOutputPort
         );
+    }
+
+    @Bean
+    ExportUseCase exportService(final SaleUseCase saleUseCase) {
+        return new ExportService(saleUseCase);
     }
 }

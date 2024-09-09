@@ -24,5 +24,8 @@ public class TransactionReportDto {
         this.netTotal = netTotal;
         this.dishId = dishId;
         this.roomId = roomId;
+
+        if (this.roomId != null) type = "Consumo en hotel";
+        else type = "Consumo en restaurante";
     }
 }
