@@ -2,6 +2,7 @@ package com.cesar31.transaction.application.ports.input;
 
 import com.cesar31.transaction.application.dto.OrganizationIncomeDto;
 import com.cesar31.transaction.application.dto.SaleReqDto;
+import com.cesar31.transaction.application.dto.TransactionReportDto;
 import com.cesar31.transaction.domain.Sale;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,8 @@ public interface SaleUseCase {
 
 
     List<OrganizationIncomeDto> getTopOrganizationByIncome(LocalDateTime start, LocalDateTime end);
+
+    List<TransactionReportDto> getTransactionByClient(UUID clientId, UUID organizationId, LocalDateTime start, LocalDateTime end);
 
     Optional<Sale> findBySaleId(UUID saleId);
 

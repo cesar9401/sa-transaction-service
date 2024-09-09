@@ -1,6 +1,7 @@
 package com.cesar31.transaction.application.ports.output;
 
 import com.cesar31.transaction.application.dto.OrganizationIncomeDto;
+import com.cesar31.transaction.application.dto.TransactionReportDto;
 import com.cesar31.transaction.domain.DishOrder;
 import com.cesar31.transaction.domain.Payment;
 import com.cesar31.transaction.domain.Sale;
@@ -19,4 +20,6 @@ public interface SaleOutputPort {
     Sale save(Sale sale, List<DishOrder> orders, List<Payment> payments);
 
     List<OrganizationIncomeDto> getTopOrganizationByIncome(LocalDateTime start, LocalDateTime end);
+
+    List<TransactionReportDto> getTransactionByClient(UUID clientId, UUID organizationId, LocalDateTime start, LocalDateTime end);
 }

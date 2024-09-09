@@ -3,6 +3,7 @@ package com.cesar31.transaction.application.service;
 import com.cesar31.transaction.application.dto.DishDto;
 import com.cesar31.transaction.application.dto.OrganizationIncomeDto;
 import com.cesar31.transaction.application.dto.SaleReqDto;
+import com.cesar31.transaction.application.dto.TransactionReportDto;
 import com.cesar31.transaction.application.dto.UpdateDishStockReqDto;
 import com.cesar31.transaction.application.exception.ApplicationException;
 import com.cesar31.transaction.application.exception.EntityNotFoundException;
@@ -51,6 +52,11 @@ public class SaleService implements SaleUseCase {
     @Override
     public List<OrganizationIncomeDto> getTopOrganizationByIncome(LocalDateTime start, LocalDateTime end) {
         return saleOutputPort.getTopOrganizationByIncome(start, end);
+    }
+
+    @Override
+    public List<TransactionReportDto> getTransactionByClient(UUID clientId, UUID organizationId, LocalDateTime start, LocalDateTime end) {
+        return saleOutputPort.getTransactionByClient(clientId, organizationId, start, end);
     }
 
     @Override

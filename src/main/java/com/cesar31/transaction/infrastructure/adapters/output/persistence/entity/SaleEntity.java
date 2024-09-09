@@ -19,7 +19,6 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "sa_sale")
-@NoArgsConstructor
 public class SaleEntity {
 
     @Id
@@ -50,9 +49,4 @@ public class SaleEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cat_sale_status")
     private CategoryEntity catSaleStatus;
-
-    public SaleEntity(BigDecimal netTotalForTransactions, BigDecimal netTotalPaid) {
-        this.netTotalForTransactions = netTotalForTransactions;
-        this.netTotalPaid = netTotalPaid;
-    }
 }

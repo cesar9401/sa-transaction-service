@@ -1,6 +1,7 @@
 package com.cesar31.transaction.infrastructure.adapters.output.persistence;
 
 import com.cesar31.transaction.application.dto.OrganizationIncomeDto;
+import com.cesar31.transaction.application.dto.TransactionReportDto;
 import com.cesar31.transaction.application.ports.output.SaleOutputPort;
 import com.cesar31.transaction.domain.DishOrder;
 import com.cesar31.transaction.domain.Payment;
@@ -13,6 +14,7 @@ import com.cesar31.transaction.infrastructure.adapters.output.persistence.reposi
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.repository.PaymentEntityRepository;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.repository.SaleEntityRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Component;
@@ -64,7 +66,8 @@ public class SalePersistenceAdapter implements SaleOutputPort {
         var predicates = new ArrayList<Predicate>();
         if (organizationId != null) predicates.add(cb.equal(sale.get("organizationId"), organizationId));
         if (clientId != null) predicates.add(cb.equal(sale.get("clientId"), clientId));
-        if (catSaleStatus != null) predicates.add(cb.equal(sale.get("catSaleStatus").<Long>get("categoryId"), catSaleStatus));
+        if (catSaleStatus != null)
+            predicates.add(cb.equal(sale.get("catSaleStatus").<Long>get("categoryId"), catSaleStatus));
 
         cq.where(predicates.toArray(new Predicate[]{}));
         var query = em.createQuery(cq);
@@ -114,5 +117,26 @@ public class SalePersistenceAdapter implements SaleOutputPort {
 
         var typedQuery = em.createQuery(query);
         return typedQuery.getResultList();
+    }
+
+    @Override
+    public List<TransactionReportDto> getTransactionByClient(UUID clientId, UUID organizationId, LocalDateTime start, LocalDateTime end) {
+        var jpql = "SELECT new com.cesar31.transaction.application.dto.TransactionReportDto(t.transactionId, t.entryDate, t.netTotal, do.dishId, r.roomId) " +
+                   "FROM TransactionEntity t " +
+                   "LEFT JOIN DishOrderEntity do ON t.transactionId = do.transaction.transactionId " +
+                   "LEFT JOIN ReservationEntity r ON t.transactionId = r.transaction.transactionId " +
+                   "INNER JOIN SaleEntity s ON t.saleId = s.saleId " +
+                   "WHERE s.clientId = :clientId " +
+                   "AND t.entryDate BETWEEN :startDate AND :endDate";
+
+        if (organizationId != null) jpql += " AND s.organizationId = :organizationId ";
+
+        TypedQuery<TransactionReportDto> query = em.createQuery(jpql, TransactionReportDto.class);
+        query.setParameter("clientId", clientId);
+        query.setParameter("startDate", start);
+        query.setParameter("endDate", end);
+
+        if (organizationId != null) query.setParameter("organizationId", organizationId);
+        return query.getResultList();
     }
 }
