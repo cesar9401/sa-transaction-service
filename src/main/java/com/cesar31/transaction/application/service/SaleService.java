@@ -68,7 +68,8 @@ public class SaleService implements SaleUseCase {
         if (optSale.isEmpty()) throw new EntityNotFoundException("sale_not_found");
 
         var sale = optSale.get();
-        if (!sale.getCatSaleStatus().is(CategoryEnum.SS_PENDING_PAYMENT)) throw new ApplicationException("sale_is_still_not_open");
+        if (!sale.getCatSaleStatus().is(CategoryEnum.SS_PENDING_PAYMENT))
+            throw new ApplicationException("sale_is_still_not_open");
 
         var clientId = sale.getClientId();
         var transactions = saleReqDto.getTransactions();
@@ -104,12 +105,7 @@ public class SaleService implements SaleUseCase {
         sale.setNetTotalPaid(newNetPayment);
         sale.setCatSaleStatus(catSaleStatus);
 
-        var updDishReq = new UpdateDishStockReqDto();
-        updDishReq.setClientId(clientId);
-        updDishReq.setOrders(dishesToUpdateStock);
-
-        // update stock here
-        var updatedStockIds = dishOutputPort.updDishStock(updDishReq);
+        this.updateStock(clientId, dishesToUpdateStock);
 
         // save here
         return saleOutputPort.save(sale, dishOrders, salePayments);
@@ -166,12 +162,7 @@ public class SaleService implements SaleUseCase {
         sale.setNetTotalPaid(netPayment);
         sale.setCatSaleStatus(catSaleStatus);
 
-        var updDishReq = new UpdateDishStockReqDto();
-        updDishReq.setClientId(clientId);
-        updDishReq.setOrders(dishesToUpdateStock);
-
-        // update stock here
-        var updatedStockIds = dishOutputPort.updDishStock(updDishReq);
+        this.updateStock(clientId, dishesToUpdateStock);
 
         // save here
         return saleOutputPort.save(sale, dishOrders, salePayments);
@@ -235,8 +226,6 @@ public class SaleService implements SaleUseCase {
     }
 
     private BigDecimal processPayments(UUID saleId, List<Payment> salePayments, List<SaleReqDto.PaymentReqDto> payments, Map<Long, Category> catPaymentMethods, LocalDateTime now) {
-        var paymentTotal = BigDecimal.ZERO;
-
         var netPayment = BigDecimal.ZERO;
         for (var reqPayment : payments) {
             var amount = reqPayment.getAmount();
@@ -251,7 +240,7 @@ public class SaleService implements SaleUseCase {
             salePayments.add(payment);
         }
 
-        return paymentTotal;
+        return netPayment;
     }
 
     private Category getCatSaleStatus(BigDecimal netPayment, BigDecimal netSaleTotal) throws ApplicationException {
@@ -259,5 +248,16 @@ public class SaleService implements SaleUseCase {
         if (compareTo > 0) throw new ApplicationException("invalid_net_payment");
         else if (compareTo < 0) return categoryUseCase.findBy(CategoryEnum.SS_PENDING_PAYMENT.categoryId);
         return categoryUseCase.findBy(CategoryEnum.SS_COMPLETED.categoryId);
+    }
+
+    private void updateStock(UUID clientId, List<UpdateDishStockReqDto.DishOrderDto> dishesToUpdateStock) {
+        if (dishesToUpdateStock.isEmpty()) return;
+
+        var updDishReq = new UpdateDishStockReqDto();
+        updDishReq.setClientId(clientId);
+        updDishReq.setOrders(dishesToUpdateStock);
+
+        // update stock here
+        var updatedStockIds = dishOutputPort.updDishStock(updDishReq);
     }
 }

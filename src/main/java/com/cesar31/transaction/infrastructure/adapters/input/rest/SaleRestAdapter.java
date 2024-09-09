@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,6 +49,13 @@ public class SaleRestAdapter {
     @Operation(description = "Create a new sale.")
     public ResponseEntity<Sale> createSale(@RequestBody SaleReqDto reqDto) throws Exception {
         var sale = saleUseCase.createSale(reqDto);
+        return ResponseEntity.ok(sale);
+    }
+
+    @PutMapping("{saleId}")
+    @Operation(description = "Update any sale by its id.")
+    public ResponseEntity<Sale> updateSale(@PathVariable("saleId") UUID saleId, @RequestBody SaleReqDto reqDto) throws Exception {
+        var sale = saleUseCase.updateSale(saleId, reqDto);
         return ResponseEntity.ok(sale);
     }
 }
