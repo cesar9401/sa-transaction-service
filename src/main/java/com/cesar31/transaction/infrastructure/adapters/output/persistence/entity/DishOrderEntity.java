@@ -18,7 +18,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "sa_dish_order")
-public class DishOrder {
+public class DishOrderEntity {
 
     @Id
     private UUID dishOrderId;
