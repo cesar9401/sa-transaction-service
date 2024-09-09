@@ -12,6 +12,7 @@ import java.util.UUID;
 public class Sale {
 
     private UUID saleId;
+    private UUID organizationId;
     private UUID clientId;
     private BigDecimal totalTransactionSum;
     private BigDecimal totalDiscountSum;

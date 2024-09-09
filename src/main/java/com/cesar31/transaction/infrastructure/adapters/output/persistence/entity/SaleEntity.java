@@ -24,6 +24,9 @@ public class SaleEntity {
     @Column(name = "sale_id")
     private UUID saleId;
 
+    @Column(name = "organization_id")
+    private UUID organizationId;
+
     @Column(name = "client_id")
     private UUID clientId;
 

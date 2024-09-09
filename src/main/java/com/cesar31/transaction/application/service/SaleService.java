@@ -137,6 +137,7 @@ public class SaleService implements SaleUseCase {
         else catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_COMPLETED.categoryId);
 
         var sale = new Sale();
+        sale.setOrganizationId(currentUserOutputPort.getOrganizationId());
         sale.setClientId(clientId);
         sale.setEntryDate(now);
         sale.setTotalTransactionSum(saleTotal);
