@@ -1,6 +1,7 @@
 package com.cesar31.transaction.application.dto;
 
 import com.cesar31.transaction.application.util.SelfValidating;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
@@ -19,6 +20,7 @@ public class SaleReqDto extends SelfValidating {
 
     private UUID saleId;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime entryDate;
 
     @NotNull
@@ -34,6 +36,7 @@ public class SaleReqDto extends SelfValidating {
     @Setter
     public static class DishOrderReqDto {
 
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime entryDate;
 
         @NotNull
@@ -48,7 +51,7 @@ public class SaleReqDto extends SelfValidating {
     @Setter
     public static class PaymentReqDto {
 
-
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime entryDate;
 
         @NotNull
