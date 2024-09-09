@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class CategoryAdapterPersistence implements CategoryOutputPort {
+public class CategoryPersistenceAdapter implements CategoryOutputPort {
 
     private final CategoryEntityRepository entityRepository;
     private final CategoryPersistenceMapper mapper;
 
-    public CategoryAdapterPersistence(CategoryEntityRepository entityRepository, CategoryPersistenceMapper mapper) {
+    public CategoryPersistenceAdapter(CategoryEntityRepository entityRepository, CategoryPersistenceMapper mapper) {
         this.entityRepository = entityRepository;
         this.mapper = mapper;
     }

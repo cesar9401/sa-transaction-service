@@ -5,6 +5,8 @@ import com.cesar31.transaction.infrastructure.adapters.output.persistence.entity
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(uses = CategoryPersistenceMapper.class)
 public interface PaymentPersistenceMapper {
 
@@ -14,6 +16,7 @@ public interface PaymentPersistenceMapper {
     @Mapping(target = "entryDate", source = "entryDate")
     @Mapping(target = "catPaymentMethod", source = "catPaymentMethod")
     Payment toPayment(PaymentEntity paymentEntity);
+    List<Payment> toPayments(List<PaymentEntity> paymentEntities);
 
     @Mapping(target = "paymentId", source = "paymentId")
     @Mapping(target = "saleId", source = "saleId")
@@ -21,4 +24,5 @@ public interface PaymentPersistenceMapper {
     @Mapping(target = "entryDate", source = "entryDate")
     @Mapping(target = "catPaymentMethod", source = "catPaymentMethod")
     PaymentEntity toPaymentEntity(Payment payment);
+    List<PaymentEntity> toPaymentEntities(List<Payment> payments);
 }

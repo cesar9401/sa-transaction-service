@@ -6,6 +6,7 @@ import com.cesar31.transaction.application.ports.output.CategoryOutputPort;
 import com.cesar31.transaction.application.ports.output.CheckStockOutputPort;
 import com.cesar31.transaction.application.ports.output.CurrentUserOutputPort;
 import com.cesar31.transaction.application.ports.output.ExistsClientOutputPort;
+import com.cesar31.transaction.application.ports.output.SaleOutputPort;
 import com.cesar31.transaction.application.service.CategoryService;
 import com.cesar31.transaction.application.service.SaleService;
 import org.springframework.context.annotation.Bean;
@@ -23,11 +24,15 @@ public class BeanConfiguration {
 
     @Bean
     SaleUseCase saleService(
+            final SaleOutputPort saleOutputPort,
             final CategoryUseCase categoryUseCase,
             final CurrentUserOutputPort currentUserOutputPort,
             final ExistsClientOutputPort existsClientOutputPort,
             final CheckStockOutputPort checkStockOutputPort
     ) {
-        return new SaleService(categoryUseCase, currentUserOutputPort, existsClientOutputPort, checkStockOutputPort);
+        return new SaleService(
+                saleOutputPort, categoryUseCase, currentUserOutputPort,
+                existsClientOutputPort, checkStockOutputPort
+        );
     }
 }

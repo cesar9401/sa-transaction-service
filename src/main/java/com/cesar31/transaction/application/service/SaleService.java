@@ -10,6 +10,7 @@ import com.cesar31.transaction.application.ports.input.SaleUseCase;
 import com.cesar31.transaction.application.ports.output.CheckStockOutputPort;
 import com.cesar31.transaction.application.ports.output.CurrentUserOutputPort;
 import com.cesar31.transaction.application.ports.output.ExistsClientOutputPort;
+import com.cesar31.transaction.application.ports.output.SaleOutputPort;
 import com.cesar31.transaction.application.util.enums.CategoryEnum;
 import com.cesar31.transaction.application.util.enums.RoleEnum;
 import com.cesar31.transaction.domain.Category;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 public class SaleService implements SaleUseCase {
 
+    private final SaleOutputPort saleOutputPort;
     private final CategoryUseCase categoryUseCase;
     private final CurrentUserOutputPort currentUserOutputPort;
     private final ExistsClientOutputPort existsClientOutputPort;
@@ -33,7 +35,8 @@ public class SaleService implements SaleUseCase {
 
     private final Set<UUID> allowedRoles = Set.of(RoleEnum.HOTEL_MANAGER.roleId, RoleEnum.RESTAURANT_MANAGER.roleId, RoleEnum.ROOT.roleId);
 
-    public SaleService(CategoryUseCase categoryUseCase, CurrentUserOutputPort currentUserOutputPort, ExistsClientOutputPort existsClientOutputPort, CheckStockOutputPort checkStockOutputPort) {
+    public SaleService(SaleOutputPort saleOutputPort, CategoryUseCase categoryUseCase, CurrentUserOutputPort currentUserOutputPort, ExistsClientOutputPort existsClientOutputPort, CheckStockOutputPort checkStockOutputPort) {
+        this.saleOutputPort = saleOutputPort;
         this.categoryUseCase = categoryUseCase;
         this.currentUserOutputPort = currentUserOutputPort;
         this.existsClientOutputPort = existsClientOutputPort;
@@ -54,6 +57,7 @@ public class SaleService implements SaleUseCase {
         var saleId = saleReqDto.getSaleId();
         if (saleId != null) throw new ApplicationException("not_implemented_yet.");
 
+        var newSaleId = UUID.randomUUID();
         var clientId = saleReqDto.getClientId();
         var existsClient = existsClientOutputPort.existsClientById(clientId);
         if (!existsClient) throw new EntityNotFoundException("client_not_found");
@@ -101,6 +105,7 @@ public class SaleService implements SaleUseCase {
             var total = price.multiply(new BigDecimal(amount));
 
             var dishOrder = new DishOrder();
+            dishOrder.setSaleId(newSaleId);
             dishOrder.setTransactionId(UUID.randomUUID());
             dishOrder.setFoodOrderDescription(String.format("%d orden(es) de %s", amount, dish.getName()));
             dishOrder.setQuantity(amount);
@@ -122,6 +127,7 @@ public class SaleService implements SaleUseCase {
             var amount = reqPayment.getAmount();
             var payment = new Payment();
             payment.setPaymentId(UUID.randomUUID());
+            payment.setSaleId(newSaleId);
             payment.setNetTotal(amount);
             payment.setEntryDate(now);
             payment.setCatPaymentMethod(catPaymentMethods.get(reqPayment.getCatPaymentMethod()));
@@ -137,6 +143,7 @@ public class SaleService implements SaleUseCase {
         else catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_COMPLETED.categoryId);
 
         var sale = new Sale();
+        sale.setSaleId(newSaleId);
         sale.setOrganizationId(currentUserOutputPort.getOrganizationId());
         sale.setClientId(clientId);
         sale.setEntryDate(now);
@@ -148,8 +155,6 @@ public class SaleService implements SaleUseCase {
         // TODO: update stock
 
         // TODO: save here
-
-        // TODO: create sale
-        return sale;
+        return saleOutputPort.save(sale, dishOrders, salePayments);
     }
 }

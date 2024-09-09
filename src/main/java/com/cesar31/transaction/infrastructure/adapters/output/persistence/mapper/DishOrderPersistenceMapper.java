@@ -5,6 +5,8 @@ import com.cesar31.transaction.infrastructure.adapters.output.persistence.entity
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper
 public interface DishOrderPersistenceMapper {
 
@@ -20,6 +22,7 @@ public interface DishOrderPersistenceMapper {
     @Mapping(target = "dishId", source = "dishId")
     @Mapping(target = "foodOrderDescription", source = "description")
     DishOrder toDishOrder(DishOrderEntity dishOrderEntity);
+    List<DishOrder> toDishOrders(List<DishOrderEntity> dishOrderEntities);
 
     @Mapping(target = "transaction.transactionId", source = "transactionId")
     @Mapping(target = "transaction.saleId", source = "saleId")
@@ -33,4 +36,5 @@ public interface DishOrderPersistenceMapper {
     @Mapping(target = "dishId", source = "dishId")
     @Mapping(target = "description", source = "foodOrderDescription")
     DishOrderEntity toDishOrderEntity(DishOrder dishOrder);
+    List<DishOrderEntity> toDishOrderEntities(List<DishOrder> dishOrders);
 }
