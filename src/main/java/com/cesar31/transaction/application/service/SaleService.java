@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -57,23 +58,20 @@ public class SaleService implements SaleUseCase {
     }
 
     @Override
-    public Sale createSale(SaleReqDto saleReqDto) throws ForbiddenException, ApplicationException, EntityNotFoundException {
+    public Sale updateSale(UUID saleId, SaleReqDto saleReqDto) throws EntityNotFoundException, ForbiddenException, ApplicationException {
         saleReqDto.validateSelf();
 
         var hasAnyOfAllowedRoles = currentUserOutputPort.hasAnyRole(allowedRoles);
         if (!hasAnyOfAllowedRoles) throw new ForbiddenException("not_allowed_to_perform_a_sale");
 
+        var optSale = this.findBySaleId(saleId);
+        if (optSale.isEmpty()) throw new EntityNotFoundException("sale_not_found");
+
+        var sale = optSale.get();
+        var clientId = sale.getClientId();
         var transactions = saleReqDto.getTransactions();
         var payments = saleReqDto.getPayments();
         if (transactions.isEmpty() && payments.isEmpty()) throw new ApplicationException("invalid_transaction");
-
-        var saleId = saleReqDto.getSaleId();
-        if (saleId != null) throw new ApplicationException("not_implemented_yet.");
-
-        var newSaleId = UUID.randomUUID();
-        var clientId = saleReqDto.getClientId();
-        var existsClient = existsClientOutputPort.existsClientById(clientId);
-        if (!existsClient) throw new EntityNotFoundException("client_not_found");
 
         var catPaymentMethods = categoryUseCase.findByParentId(CategoryEnum.PAYMENT_METHOD.categoryId)
                 .stream()
@@ -84,19 +82,96 @@ public class SaleService implements SaleUseCase {
                 throw new ApplicationException("invalid_payment_method");
         }
 
-        List<DishDto> dishes;
-        if (transactions.isEmpty()) {
-            dishes = List.of();
-        } else {
-            var dishesIds = transactions
-                    .stream()
-                    .map(SaleReqDto.DishOrderReqDto::getDishId)
-                    .map(UUID::toString)
-                    .distinct()
-                    .toList();
+        // process dishes
+        var dishOrders = new ArrayList<DishOrder>();
+        var dishesToUpdateStock = new ArrayList<UpdateDishStockReqDto.DishOrderDto>();
+        var now = LocalDateTime.now();
+        var saleTotal = processDishOrders(saleId, transactions, dishOrders, dishesToUpdateStock, now);
 
-            dishes = dishOutputPort.checkStock(String.join(",", dishesIds));
+        var salePayments = new ArrayList<Payment>();
+        var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, now);
+
+        return null;
+    }
+
+    @Override
+    public Sale createSale(SaleReqDto saleReqDto) throws ForbiddenException, ApplicationException, EntityNotFoundException {
+        saleReqDto.validateSelf();
+
+        var hasAnyOfAllowedRoles = currentUserOutputPort.hasAnyRole(allowedRoles);
+        if (!hasAnyOfAllowedRoles) throw new ForbiddenException("not_allowed_to_perform_a_sale");
+
+        var transactions = saleReqDto.getTransactions();
+        var payments = saleReqDto.getPayments();
+        if (transactions.isEmpty() && payments.isEmpty()) throw new ApplicationException("invalid_transaction");
+
+        var saleId = UUID.randomUUID();
+        var clientId = saleReqDto.getClientId();
+        var existsClient = existsClientOutputPort.existsClientById(clientId);
+        if (!existsClient) throw new EntityNotFoundException("client_not_found");
+
+        // check for pending sales in the current org
+        var pendingSales = this.findAllByQuery(clientId, CategoryEnum.SS_PENDING_PAYMENT.categoryId);
+        if (!pendingSales.isEmpty()) throw new ApplicationException("client_has_pending_payments");
+
+        var catPaymentMethods = categoryUseCase.findByParentId(CategoryEnum.PAYMENT_METHOD.categoryId)
+                .stream()
+                .collect(Collectors.toMap(Category::getCategoryId, cat -> cat));
+
+        for (var payment : payments) {
+            if (!catPaymentMethods.containsKey(payment.getCatPaymentMethod()))
+                throw new ApplicationException("invalid_payment_method");
         }
+
+        // process dishes
+        var dishOrders = new ArrayList<DishOrder>();
+        var dishesToUpdateStock = new ArrayList<UpdateDishStockReqDto.DishOrderDto>();
+        var now = LocalDateTime.now();
+        var saleTotal = processDishOrders(saleId, transactions, dishOrders, dishesToUpdateStock, now);
+
+        var salePayments = new ArrayList<Payment>();
+        var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, now);
+
+        int compareTo = netPayment.compareTo(saleTotal);
+        Category catSaleStatus;
+        if (compareTo > 0) throw new ApplicationException("invalid_net_payment");
+        else if (compareTo < 0) catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_PENDING_PAYMENT.categoryId);
+        else catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_COMPLETED.categoryId);
+
+        var sale = new Sale();
+        sale.setSaleId(saleId);
+        sale.setOrganizationId(currentUserOutputPort.getOrganizationId());
+        sale.setClientId(clientId);
+        sale.setEntryDate(now);
+        sale.setTotalTransactionSum(saleTotal);
+        sale.setTotalDiscountSum(BigDecimal.ZERO);
+        sale.setNetTotalForTransaction(saleTotal);// TODO: add discount
+        sale.setNetTotalPaid(netPayment);
+        sale.setCatSaleStatus(catSaleStatus);
+
+        var updDishReq = new UpdateDishStockReqDto();
+        updDishReq.setClientId(clientId);
+        updDishReq.setOrders(dishesToUpdateStock);
+
+        // update stock here
+        var updatedStockIds = dishOutputPort.updDishStock(updDishReq);
+
+        // save here
+        return saleOutputPort.save(sale, dishOrders, salePayments);
+    }
+
+    private BigDecimal processDishOrders(UUID saleId, List<SaleReqDto.DishOrderReqDto> transactions, List<DishOrder> dishOrders, List<UpdateDishStockReqDto.DishOrderDto> dishesToUpdateStock, LocalDateTime now) throws EntityNotFoundException, ApplicationException {
+        var saleTotal = BigDecimal.ZERO;
+        if (transactions.isEmpty()) return saleTotal;
+
+        var dishesIds = transactions
+                .stream()
+                .map(SaleReqDto.DishOrderReqDto::getDishId)
+                .map(UUID::toString)
+                .distinct()
+                .toList();
+
+        var dishes = dishOutputPort.checkStock(String.join(",", dishesIds));
 
         var requestDishes = transactions
                 .stream()
@@ -105,12 +180,6 @@ public class SaleService implements SaleUseCase {
         var stockDishes = dishes
                 .stream()
                 .collect(Collectors.toMap(DishDto::getDishId, dish -> dish));
-
-        var now = LocalDateTime.now();
-
-        var saleTotal = BigDecimal.ZERO;// TODO: add discount here
-        var dishOrders = new ArrayList<DishOrder>();
-        var dishesToUpdateStock = new ArrayList<UpdateDishStockReqDto.DishOrderDto>();
 
         for (var reqDishes : requestDishes.entrySet()) {
             var dishId = reqDishes.getKey();
@@ -124,7 +193,7 @@ public class SaleService implements SaleUseCase {
             var total = price.multiply(new BigDecimal(amount));
 
             var dishOrder = new DishOrder();
-            dishOrder.setSaleId(newSaleId);
+            dishOrder.setSaleId(saleId);
             dishOrder.setTransactionId(UUID.randomUUID());
             dishOrder.setFoodOrderDescription(String.format("%d orden(es) de %s", amount, dish.getName()));
             dishOrder.setQuantity(amount);
@@ -145,13 +214,18 @@ public class SaleService implements SaleUseCase {
             saleTotal = saleTotal.add(total);
         }
 
+        return saleTotal;
+    }
+
+    private BigDecimal processPayments(UUID saleId, List<Payment> salePayments, List<SaleReqDto.PaymentReqDto> payments, Map<Long, Category> catPaymentMethods, LocalDateTime now) {
+        var paymentTotal = BigDecimal.ZERO;
+
         var netPayment = BigDecimal.ZERO;
-        var salePayments = new ArrayList<Payment>();
         for (var reqPayment : payments) {
             var amount = reqPayment.getAmount();
             var payment = new Payment();
             payment.setPaymentId(UUID.randomUUID());
-            payment.setSaleId(newSaleId);
+            payment.setSaleId(saleId);
             payment.setNetTotal(amount);
             payment.setEntryDate(now);
             payment.setCatPaymentMethod(catPaymentMethods.get(reqPayment.getCatPaymentMethod()));
@@ -160,31 +234,6 @@ public class SaleService implements SaleUseCase {
             salePayments.add(payment);
         }
 
-        int compareTo = netPayment.compareTo(saleTotal);
-        Category catSaleStatus;
-        if (compareTo > 0) throw new ApplicationException("invalid_net_payment");
-        else if (compareTo < 0) catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_PENDING_PAYMENT.categoryId);
-        else catSaleStatus = categoryUseCase.findBy(CategoryEnum.SS_COMPLETED.categoryId);
-
-        var sale = new Sale();
-        sale.setSaleId(newSaleId);
-        sale.setOrganizationId(currentUserOutputPort.getOrganizationId());
-        sale.setClientId(clientId);
-        sale.setEntryDate(now);
-        sale.setTotalTransactionSum(saleTotal);
-        sale.setTotalDiscountSum(BigDecimal.ZERO);
-        sale.setNetTotalForTransaction(saleTotal);// TODO: add discount
-        sale.setNetTotalPaid(netPayment);
-        sale.setCatSaleStatus(catSaleStatus);
-
-        var updDishReq = new UpdateDishStockReqDto();
-        updDishReq.setClientId(clientId);
-        updDishReq.setOrders(dishesToUpdateStock);
-
-        // update stock here
-        var updatedStockIds = dishOutputPort.updDishStock(updDishReq);
-
-        // save here
-        return saleOutputPort.save(sale, dishOrders, salePayments);
+        return paymentTotal;
     }
 }

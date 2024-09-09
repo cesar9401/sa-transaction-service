@@ -13,5 +13,7 @@ public interface SaleUseCase {
 
     List<Sale> findAllByQuery(UUID clientId, Long catSaleStatus);
 
+    Sale updateSale(UUID saleId, SaleReqDto saleReqDto) throws Exception;
+
     Sale createSale(SaleReqDto saleReqDto) throws Exception;
 }
