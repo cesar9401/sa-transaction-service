@@ -39,6 +39,9 @@ public class SaleEntity {
     @Column(name = "net_total_for_transactions")
     private BigDecimal netTotalForTransactions;
 
+    @Column(name = "net_total_paid")
+    private BigDecimal netTotalPaid;
+
     @Column(name = "entry_date")
     private LocalDateTime entryDate;
 

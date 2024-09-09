@@ -163,6 +163,7 @@ public class SaleService implements SaleUseCase {
         sale.setTotalTransactionSum(saleTotal);
         sale.setTotalDiscountSum(BigDecimal.ZERO);
         sale.setNetTotalForTransaction(saleTotal);// TODO: add discount
+        sale.setNetTotalPaid(netPayment);
         sale.setCatSaleStatus(catSaleStatus);
 
         var updDishReq = new UpdateDishStockReqDto();

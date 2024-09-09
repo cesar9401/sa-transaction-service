@@ -14,6 +14,7 @@ public interface SalePersistenceMapper {
     @Mapping(target = "totalTransactionSum", source = "totalTransactionSum")
     @Mapping(target = "totalDiscountSum", source = "totalDiscountSum")
     @Mapping(target = "netTotalForTransaction", source = "netTotalForTransactions")
+    @Mapping(target = "netTotalPaid", source = "netTotalPaid")
     @Mapping(target = "entryDate", source = "entryDate")
     @Mapping(target = "catSaleStatus", source = "catSaleStatus")
     Sale toSale(SaleEntity saleEntity);
@@ -24,6 +25,7 @@ public interface SalePersistenceMapper {
     @Mapping(target = "totalTransactionSum", source = "totalTransactionSum")
     @Mapping(target = "totalDiscountSum", source = "totalDiscountSum")
     @Mapping(target = "netTotalForTransactions", source = "netTotalForTransaction")
+    @Mapping(target = "netTotalPaid", source = "netTotalPaid")
     @Mapping(target = "entryDate", source = "entryDate")
     @Mapping(target = "catSaleStatus", source = "catSaleStatus")
     SaleEntity toSaleEntity(Sale sale);

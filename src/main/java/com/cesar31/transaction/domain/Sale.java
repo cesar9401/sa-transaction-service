@@ -17,6 +17,7 @@ public class Sale {
     private BigDecimal totalTransactionSum;
     private BigDecimal totalDiscountSum;
     private BigDecimal netTotalForTransaction;
+    private BigDecimal netTotalPaid;
     private LocalDateTime entryDate;
     private Category catSaleStatus;
 }
