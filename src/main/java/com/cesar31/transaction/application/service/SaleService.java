@@ -97,14 +97,15 @@ public class SaleService implements SaleUseCase {
                 throw new ApplicationException("invalid_payment_method");
         }
 
+        var entryDate = saleReqDto.getEntryDate() != null ? saleReqDto.getEntryDate() : LocalDateTime.now();
+
         // process dishes
         var dishOrders = new ArrayList<DishOrder>();
         var dishesToUpdateStock = new ArrayList<UpdateDishStockReqDto.DishOrderDto>();
-        var now = LocalDateTime.now();
-        var saleTotal = processDishOrders(saleId, transactions, dishOrders, dishesToUpdateStock, now);
+        var saleTotal = processDishOrders(saleId, transactions, dishOrders, dishesToUpdateStock, entryDate);
 
         var salePayments = new ArrayList<Payment>();
-        var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, now);
+        var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, entryDate);
 
         var newSaleTotal = sale.getNetTotalForTransaction().add(saleTotal);
         var newNetPayment = sale.getNetTotalPaid().add(netPayment);
@@ -152,14 +153,15 @@ public class SaleService implements SaleUseCase {
                 throw new ApplicationException("invalid_payment_method");
         }
 
+        var entryDate = saleReqDto.getEntryDate() != null ? saleReqDto.getEntryDate() : LocalDateTime.now();
+
         // process dishes
         var dishOrders = new ArrayList<DishOrder>();
         var dishesToUpdateStock = new ArrayList<UpdateDishStockReqDto.DishOrderDto>();
-        var now = LocalDateTime.now();
-        var saleTotal = processDishOrders(saleId, transactions, dishOrders, dishesToUpdateStock, now);
+        var saleTotal = processDishOrders(saleId, transactions, dishOrders, dishesToUpdateStock, entryDate);
 
         var salePayments = new ArrayList<Payment>();
-        var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, now);
+        var netPayment = processPayments(saleId, salePayments, payments, catPaymentMethods, entryDate);
 
         var catSaleStatus = getCatSaleStatus(netPayment, saleTotal);
 
@@ -167,7 +169,7 @@ public class SaleService implements SaleUseCase {
         sale.setSaleId(saleId);
         sale.setOrganizationId(currentUserOutputPort.getOrganizationId());
         sale.setClientId(clientId);
-        sale.setEntryDate(now);
+        sale.setEntryDate(entryDate);
         sale.setTotalTransactionSum(saleTotal);
         sale.setTotalDiscountSum(BigDecimal.ZERO);
         sale.setNetTotalForTransaction(saleTotal);// TODO: add discount
@@ -180,7 +182,7 @@ public class SaleService implements SaleUseCase {
         return saleOutputPort.save(sale, dishOrders, salePayments);
     }
 
-    private BigDecimal processDishOrders(UUID saleId, List<SaleReqDto.DishOrderReqDto> transactions, List<DishOrder> dishOrders, List<UpdateDishStockReqDto.DishOrderDto> dishesToUpdateStock, LocalDateTime now) throws EntityNotFoundException, ApplicationException {
+    private BigDecimal processDishOrders(UUID saleId, List<SaleReqDto.DishOrderReqDto> transactions, List<DishOrder> dishOrders, List<UpdateDishStockReqDto.DishOrderDto> dishesToUpdateStock, LocalDateTime entryDate) throws EntityNotFoundException, ApplicationException {
         var saleTotal = BigDecimal.ZERO;
         if (transactions.isEmpty()) return saleTotal;
 
@@ -195,7 +197,10 @@ public class SaleService implements SaleUseCase {
 
         var requestDishes = transactions
                 .stream()
-                .collect(Collectors.toMap(SaleReqDto.DishOrderReqDto::getDishId, SaleReqDto.DishOrderReqDto::getAmount, Integer::sum));
+                .collect(Collectors.toMap(SaleReqDto.DishOrderReqDto::getDishId, req -> req, (r1, r2) -> {
+                    r1.setAmount(r1.getAmount() + r2.getAmount());
+                    return r1;
+                }));
 
         var stockDishes = dishes
                 .stream()
@@ -203,7 +208,8 @@ public class SaleService implements SaleUseCase {
 
         for (var reqDishes : requestDishes.entrySet()) {
             var dishId = reqDishes.getKey();
-            var amount = reqDishes.getValue();
+            var reqDish = reqDishes.getValue();
+            var amount = reqDish.getAmount();
 
             if (!stockDishes.containsKey(dishId)) throw new EntityNotFoundException("dish_not_found: " + dishId);
             var dish = stockDishes.get(dishId);
@@ -222,8 +228,10 @@ public class SaleService implements SaleUseCase {
             dishOrder.setTransactionTotal(total);
             dishOrder.setDiscountTotal(BigDecimal.ZERO);
             dishOrder.setNetTotal(total);// TODO: minus discount
-            dishOrder.setEntryDate(now);
             dishOrder.setDishId(dishId);
+
+            var date = reqDish.getEntryDate() != null ? reqDish.getEntryDate() : entryDate;
+            dishOrder.setEntryDate(date);
 
             var dishToUpdateStock = new UpdateDishStockReqDto.DishOrderDto();
             dishToUpdateStock.setDishId(dishId);
@@ -237,7 +245,7 @@ public class SaleService implements SaleUseCase {
         return saleTotal;
     }
 
-    private BigDecimal processPayments(UUID saleId, List<Payment> salePayments, List<SaleReqDto.PaymentReqDto> payments, Map<Long, Category> catPaymentMethods, LocalDateTime now) {
+    private BigDecimal processPayments(UUID saleId, List<Payment> salePayments, List<SaleReqDto.PaymentReqDto> payments, Map<Long, Category> catPaymentMethods, LocalDateTime entryDate) {
         var netPayment = BigDecimal.ZERO;
         for (var reqPayment : payments) {
             var amount = reqPayment.getAmount();
@@ -245,8 +253,11 @@ public class SaleService implements SaleUseCase {
             payment.setPaymentId(UUID.randomUUID());
             payment.setSaleId(saleId);
             payment.setNetTotal(amount);
-            payment.setEntryDate(now);
             payment.setCatPaymentMethod(catPaymentMethods.get(reqPayment.getCatPaymentMethod()));
+
+            // date to payment
+            var date = reqPayment.getEntryDate() != null ? reqPayment.getEntryDate() : entryDate;
+            payment.setEntryDate(date);
 
             netPayment = netPayment.add(amount);
             salePayments.add(payment);

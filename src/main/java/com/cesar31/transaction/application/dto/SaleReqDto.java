@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +18,8 @@ import java.util.UUID;
 public class SaleReqDto extends SelfValidating {
 
     private UUID saleId;
+
+    private LocalDateTime entryDate;
 
     @NotNull
     private UUID clientId;
@@ -31,6 +34,8 @@ public class SaleReqDto extends SelfValidating {
     @Setter
     public static class DishOrderReqDto {
 
+        private LocalDateTime entryDate;
+
         @NotNull
         private UUID dishId;
 
@@ -42,6 +47,9 @@ public class SaleReqDto extends SelfValidating {
     @Getter
     @Setter
     public static class PaymentReqDto {
+
+
+        private LocalDateTime entryDate;
 
         @NotNull
         @Positive
