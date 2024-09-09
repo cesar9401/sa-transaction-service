@@ -1,6 +1,7 @@
 package com.cesar31.transaction.application.service;
 
 import com.cesar31.transaction.application.dto.DishDto;
+import com.cesar31.transaction.application.dto.OrganizationIncomeDto;
 import com.cesar31.transaction.application.dto.SaleReqDto;
 import com.cesar31.transaction.application.dto.UpdateDishStockReqDto;
 import com.cesar31.transaction.application.exception.ApplicationException;
@@ -45,6 +46,11 @@ public class SaleService implements SaleUseCase {
         this.currentUserOutputPort = currentUserOutputPort;
         this.existsClientOutputPort = existsClientOutputPort;
         this.dishOutputPort = dishOutputPort;
+    }
+
+    @Override
+    public List<OrganizationIncomeDto> getTopOrganizationByIncome(LocalDateTime start, LocalDateTime end) {
+        return saleOutputPort.getTopOrganizationByIncome(start, end);
     }
 
     @Override

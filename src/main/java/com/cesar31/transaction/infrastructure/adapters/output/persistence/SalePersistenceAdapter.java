@@ -1,5 +1,6 @@
 package com.cesar31.transaction.infrastructure.adapters.output.persistence;
 
+import com.cesar31.transaction.application.dto.OrganizationIncomeDto;
 import com.cesar31.transaction.application.ports.output.SaleOutputPort;
 import com.cesar31.transaction.domain.DishOrder;
 import com.cesar31.transaction.domain.Payment;
@@ -12,10 +13,13 @@ import com.cesar31.transaction.infrastructure.adapters.output.persistence.reposi
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.repository.PaymentEntityRepository;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.repository.SaleEntityRepository;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -85,5 +89,30 @@ public class SalePersistenceAdapter implements SaleOutputPort {
         this.orderEntityRepository.saveAll(orderEntities);
         this.paymentEntityRepository.saveAll(paymentEntities);
         return salePersistenceMapper.toSale(newSale);
+    }
+
+    @Override
+    public List<OrganizationIncomeDto> getTopOrganizationByIncome(LocalDateTime start, LocalDateTime end) {
+        var cb = em.getCriteriaBuilder();
+        var query = cb.createQuery(OrganizationIncomeDto.class);
+
+        var sale = query.from(SaleEntity.class);
+
+        Expression<BigDecimal> totalTransactionsSum = cb.sum(sale.get("netTotalForTransactions"));
+        Expression<BigDecimal> totalPaidSum = cb.sum(sale.get("netTotalPaid"));
+
+        query.select(cb.construct(
+                OrganizationIncomeDto.class,
+                sale.get("organizationId"),
+                totalTransactionsSum,
+                totalPaidSum
+        ));
+
+        query.where(cb.between(sale.get("entryDate"), start, end));
+        query.groupBy(sale.get("organizationId"));
+        query.orderBy(cb.desc(cb.sum(sale.get("netTotalForTransactions"))));
+
+        var typedQuery = em.createQuery(query);
+        return typedQuery.getResultList();
     }
 }

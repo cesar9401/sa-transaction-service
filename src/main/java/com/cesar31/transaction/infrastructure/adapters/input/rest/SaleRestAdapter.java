@@ -1,9 +1,11 @@
 package com.cesar31.transaction.infrastructure.adapters.input.rest;
 
+import com.cesar31.transaction.application.dto.OrganizationIncomeDto;
 import com.cesar31.transaction.application.dto.SaleReqDto;
 import com.cesar31.transaction.application.ports.input.SaleUseCase;
 import com.cesar31.transaction.domain.Sale;
 import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +28,16 @@ public class SaleRestAdapter {
 
     public SaleRestAdapter(SaleUseCase saleUseCase) {
         this.saleUseCase = saleUseCase;
+    }
+
+    @GetMapping("report1")
+    @Operation(description = "Get top organizations by income")
+    public ResponseEntity<List<OrganizationIncomeDto>> report1(
+            @RequestParam(name = "start") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+            @RequestParam(name = "end") @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end
+    ) {
+        var topOrgs = saleUseCase.getTopOrganizationByIncome(start, end);
+        return ResponseEntity.ok(topOrgs);
     }
 
     @GetMapping
