@@ -2,12 +2,13 @@ package com.cesar31.transaction.application.service;
 
 import com.cesar31.transaction.application.dto.DishDto;
 import com.cesar31.transaction.application.dto.SaleReqDto;
+import com.cesar31.transaction.application.dto.UpdateDishStockReqDto;
 import com.cesar31.transaction.application.exception.ApplicationException;
 import com.cesar31.transaction.application.exception.EntityNotFoundException;
 import com.cesar31.transaction.application.exception.ForbiddenException;
 import com.cesar31.transaction.application.ports.input.CategoryUseCase;
 import com.cesar31.transaction.application.ports.input.SaleUseCase;
-import com.cesar31.transaction.application.ports.output.CheckStockOutputPort;
+import com.cesar31.transaction.application.ports.output.DishOutputPort;
 import com.cesar31.transaction.application.ports.output.CurrentUserOutputPort;
 import com.cesar31.transaction.application.ports.output.ExistsClientOutputPort;
 import com.cesar31.transaction.application.ports.output.SaleOutputPort;
@@ -21,6 +22,7 @@ import com.cesar31.transaction.domain.Sale;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,16 +33,16 @@ public class SaleService implements SaleUseCase {
     private final CategoryUseCase categoryUseCase;
     private final CurrentUserOutputPort currentUserOutputPort;
     private final ExistsClientOutputPort existsClientOutputPort;
-    private final CheckStockOutputPort checkStockOutputPort;
+    private final DishOutputPort dishOutputPort;
 
     private final Set<UUID> allowedRoles = Set.of(RoleEnum.HOTEL_MANAGER.roleId, RoleEnum.RESTAURANT_MANAGER.roleId, RoleEnum.ROOT.roleId);
 
-    public SaleService(SaleOutputPort saleOutputPort, CategoryUseCase categoryUseCase, CurrentUserOutputPort currentUserOutputPort, ExistsClientOutputPort existsClientOutputPort, CheckStockOutputPort checkStockOutputPort) {
+    public SaleService(SaleOutputPort saleOutputPort, CategoryUseCase categoryUseCase, CurrentUserOutputPort currentUserOutputPort, ExistsClientOutputPort existsClientOutputPort, DishOutputPort dishOutputPort) {
         this.saleOutputPort = saleOutputPort;
         this.categoryUseCase = categoryUseCase;
         this.currentUserOutputPort = currentUserOutputPort;
         this.existsClientOutputPort = existsClientOutputPort;
-        this.checkStockOutputPort = checkStockOutputPort;
+        this.dishOutputPort = dishOutputPort;
     }
 
     @Override
@@ -71,15 +73,19 @@ public class SaleService implements SaleUseCase {
                 throw new ApplicationException("invalid_payment_method");
         }
 
-        var dishesIds = transactions
-                .stream()
-                .map(SaleReqDto.DishOrderReqDto::getDishId)
-                .map(UUID::toString)
-                .distinct()
-                .toList();
+        List<DishDto> dishes;
+        if (transactions.isEmpty()) {
+            dishes = List.of();
+        } else {
+            var dishesIds = transactions
+                    .stream()
+                    .map(SaleReqDto.DishOrderReqDto::getDishId)
+                    .map(UUID::toString)
+                    .distinct()
+                    .toList();
 
-        // TODO: check stock
-        var dishes = checkStockOutputPort.checkStock(String.join(",", dishesIds));
+            dishes = dishOutputPort.checkStock(String.join(",", dishesIds));
+        }
 
         var requestDishes = transactions
                 .stream()
@@ -93,6 +99,8 @@ public class SaleService implements SaleUseCase {
 
         var saleTotal = BigDecimal.ZERO;// TODO: add discount here
         var dishOrders = new ArrayList<DishOrder>();
+        var dishesToUpdateStock = new ArrayList<UpdateDishStockReqDto.DishOrderDto>();
+
         for (var reqDishes : requestDishes.entrySet()) {
             var dishId = reqDishes.getKey();
             var amount = reqDishes.getValue();
@@ -116,6 +124,11 @@ public class SaleService implements SaleUseCase {
             dishOrder.setNetTotal(total);// TODO: minus discount
             dishOrder.setEntryDate(now);
             dishOrder.setDishId(dishId);
+
+            var dishToUpdateStock = new UpdateDishStockReqDto.DishOrderDto();
+            dishToUpdateStock.setDishId(dishId);
+            dishToUpdateStock.setQuantity(amount);
+            dishesToUpdateStock.add(dishToUpdateStock);
 
             dishOrders.add(dishOrder);
             saleTotal = saleTotal.add(total);
@@ -152,9 +165,14 @@ public class SaleService implements SaleUseCase {
         sale.setNetTotalForTransaction(saleTotal);// TODO: add discount
         sale.setCatSaleStatus(catSaleStatus);
 
-        // TODO: update stock
+        var updDishReq = new UpdateDishStockReqDto();
+        updDishReq.setClientId(clientId);
+        updDishReq.setOrders(dishesToUpdateStock);
 
-        // TODO: save here
+        // update stock here
+        var updatedStockIds = dishOutputPort.updDishStock(updDishReq);
+
+        // save here
         return saleOutputPort.save(sale, dishOrders, salePayments);
     }
 }

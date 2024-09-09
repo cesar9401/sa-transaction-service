@@ -3,7 +3,7 @@ package com.cesar31.transaction.infrastructure.config.bean;
 import com.cesar31.transaction.application.ports.input.CategoryUseCase;
 import com.cesar31.transaction.application.ports.input.SaleUseCase;
 import com.cesar31.transaction.application.ports.output.CategoryOutputPort;
-import com.cesar31.transaction.application.ports.output.CheckStockOutputPort;
+import com.cesar31.transaction.application.ports.output.DishOutputPort;
 import com.cesar31.transaction.application.ports.output.CurrentUserOutputPort;
 import com.cesar31.transaction.application.ports.output.ExistsClientOutputPort;
 import com.cesar31.transaction.application.ports.output.SaleOutputPort;
@@ -28,11 +28,11 @@ public class BeanConfiguration {
             final CategoryUseCase categoryUseCase,
             final CurrentUserOutputPort currentUserOutputPort,
             final ExistsClientOutputPort existsClientOutputPort,
-            final CheckStockOutputPort checkStockOutputPort
+            final DishOutputPort dishOutputPort
     ) {
         return new SaleService(
                 saleOutputPort, categoryUseCase, currentUserOutputPort,
-                existsClientOutputPort, checkStockOutputPort
+                existsClientOutputPort, dishOutputPort
         );
     }
 }
