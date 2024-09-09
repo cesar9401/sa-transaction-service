@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -43,6 +44,16 @@ public class SaleService implements SaleUseCase {
         this.currentUserOutputPort = currentUserOutputPort;
         this.existsClientOutputPort = existsClientOutputPort;
         this.dishOutputPort = dishOutputPort;
+    }
+
+    @Override
+    public Optional<Sale> findBySaleId(UUID saleId) {
+        return saleOutputPort.findByOrganizationIdAndSaleId(currentUserOutputPort.getOrganizationId(), saleId);
+    }
+
+    @Override
+    public List<Sale> findAllByQuery(UUID clientId, Long catSaleStatus) {
+        return saleOutputPort.findAllByQuery(currentUserOutputPort.getOrganizationId(), clientId, catSaleStatus);
     }
 
     @Override

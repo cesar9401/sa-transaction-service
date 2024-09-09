@@ -5,6 +5,8 @@ import com.cesar31.transaction.infrastructure.adapters.output.persistence.entity
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(uses = CategoryPersistenceMapper.class)
 public interface SalePersistenceMapper {
 
@@ -18,6 +20,7 @@ public interface SalePersistenceMapper {
     @Mapping(target = "entryDate", source = "entryDate")
     @Mapping(target = "catSaleStatus", source = "catSaleStatus")
     Sale toSale(SaleEntity saleEntity);
+    List<Sale> toSales(List<SaleEntity> saleEntities);
 
     @Mapping(target = "saleId", source = "saleId")
     @Mapping(target = "organizationId", source = "organizationId")
@@ -29,4 +32,5 @@ public interface SalePersistenceMapper {
     @Mapping(target = "entryDate", source = "entryDate")
     @Mapping(target = "catSaleStatus", source = "catSaleStatus")
     SaleEntity toSaleEntity(Sale sale);
+    List<SaleEntity> toSalesEntities(List<Sale> sales);
 }

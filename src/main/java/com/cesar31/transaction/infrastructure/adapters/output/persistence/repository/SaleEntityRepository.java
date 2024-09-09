@@ -3,7 +3,10 @@ package com.cesar31.transaction.infrastructure.adapters.output.persistence.repos
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.entity.SaleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SaleEntityRepository extends JpaRepository<SaleEntity, UUID> {
+
+    Optional<SaleEntity> findByOrganizationIdAndSaleId(UUID organizationId, UUID saleId);
 }

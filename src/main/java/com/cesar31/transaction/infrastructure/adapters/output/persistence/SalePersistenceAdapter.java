@@ -4,16 +4,22 @@ import com.cesar31.transaction.application.ports.output.SaleOutputPort;
 import com.cesar31.transaction.domain.DishOrder;
 import com.cesar31.transaction.domain.Payment;
 import com.cesar31.transaction.domain.Sale;
+import com.cesar31.transaction.infrastructure.adapters.output.persistence.entity.SaleEntity;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.mapper.DishOrderPersistenceMapper;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.mapper.PaymentPersistenceMapper;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.mapper.SalePersistenceMapper;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.repository.DishOrderEntityRepository;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.repository.PaymentEntityRepository;
 import com.cesar31.transaction.infrastructure.adapters.output.persistence.repository.SaleEntityRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class SalePersistenceAdapter implements SaleOutputPort {
@@ -24,14 +30,48 @@ public class SalePersistenceAdapter implements SaleOutputPort {
     private final PaymentEntityRepository paymentEntityRepository;
     private final DishOrderPersistenceMapper dishOrderPersistenceMapper;
     private final PaymentPersistenceMapper paymentPersistenceMapper;
+    private final EntityManager em;
 
-    public SalePersistenceAdapter(SaleEntityRepository saleEntityRepository, SalePersistenceMapper salePersistenceMapper, DishOrderEntityRepository orderEntityRepository, PaymentEntityRepository paymentEntityRepository, DishOrderPersistenceMapper dishOrderPersistenceMapper, PaymentPersistenceMapper paymentPersistenceMapper) {
+    public SalePersistenceAdapter(
+            SaleEntityRepository saleEntityRepository,
+            SalePersistenceMapper salePersistenceMapper,
+            DishOrderEntityRepository orderEntityRepository,
+            PaymentEntityRepository paymentEntityRepository,
+            DishOrderPersistenceMapper dishOrderPersistenceMapper,
+            PaymentPersistenceMapper paymentPersistenceMapper,
+            EntityManager em
+    ) {
         this.saleEntityRepository = saleEntityRepository;
         this.salePersistenceMapper = salePersistenceMapper;
         this.orderEntityRepository = orderEntityRepository;
         this.paymentEntityRepository = paymentEntityRepository;
         this.dishOrderPersistenceMapper = dishOrderPersistenceMapper;
         this.paymentPersistenceMapper = paymentPersistenceMapper;
+        this.em = em;
+    }
+
+    @Override
+    public List<Sale> findAllByQuery(UUID organizationId, UUID clientId, Long catSaleStatus) {
+        var cb = em.getCriteriaBuilder();
+
+        var cq = cb.createQuery(SaleEntity.class);
+        var sale = cq.from(SaleEntity.class);
+
+        var predicates = new ArrayList<Predicate>();
+        if (organizationId != null) predicates.add(cb.equal(sale.get("organizationId"), organizationId));
+        if (clientId != null) predicates.add(cb.equal(sale.get("clientId"), clientId));
+        if (catSaleStatus != null) predicates.add(cb.equal(sale.get("catSaleStatus").<Long>get("categoryId"), catSaleStatus));
+
+        cq.where(predicates.toArray(new Predicate[]{}));
+        var query = em.createQuery(cq);
+        var sales = query.getResultList();
+        return salePersistenceMapper.toSales(sales);
+    }
+
+    @Override
+    public Optional<Sale> findByOrganizationIdAndSaleId(UUID organizationId, UUID saleId) {
+        return saleEntityRepository.findByOrganizationIdAndSaleId(organizationId, saleId)
+                .map(salePersistenceMapper::toSale);
     }
 
     @Override
