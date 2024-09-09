@@ -20,4 +20,9 @@ public class Transaction {
     private BigDecimal discountTotal;
     private BigDecimal netTotal;
     private LocalDateTime entryDate;
+
+    public Transaction() {
+        this.unitDiscount = BigDecimal.ZERO;
+        this.discountTotal = BigDecimal.ZERO;
+    }
 }

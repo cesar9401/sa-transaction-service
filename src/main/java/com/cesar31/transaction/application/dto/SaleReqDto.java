@@ -36,7 +36,7 @@ public class SaleReqDto extends SelfValidating {
 
         @NotNull
         @Positive
-        private UUID amount;
+        private Integer amount;
     }
 
     @Getter

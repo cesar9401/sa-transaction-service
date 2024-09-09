@@ -11,4 +11,8 @@ public class DishOrder extends Transaction {
 
     private UUID dishId;
     private String foodOrderDescription;
+
+    public DishOrder() {
+        super();
+    }
 }
